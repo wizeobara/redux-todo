@@ -1,25 +1,30 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Checkbox from "@material-ui/core/Checkbox";
 import EventNoteIcon from "@material-ui/icons/EventNote";
 import EditIcon from "@material-ui/icons/Edit";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
-import Modal from '@material-ui/core/Modal';
-import TaskForm from '../taskForm/TaskForm'
+import Modal from "@material-ui/core/Modal";
+import TaskForm from "../taskForm/TaskForm";
+import { handleModalOpen, selectIsModalOpen, selectTask } from "../taskSlice";
 import styles from "./TaskItem.module.scss";
 
 interface PropTypes {
   task: { id: number; title: string; completed: boolean };
 }
 const TaskItem: React.FC<PropTypes> = ({ task }) => {
-    const [open, setOpen] = React.useState(false);
+  const isModalOpen = useSelector(selectIsModalOpen);
+  const dispatch = useDispatch();
 
-    const handleOpen = () => {
-      setOpen(true);
-    };
-  
-    const handleClose = () => {
-      setOpen(false);
-    };
+  const handleOpen = () => {
+    dispatch(selectTask(task));
+    dispatch(handleModalOpen(true));
+  };
+
+  const handleClose = () => {
+    dispatch(handleModalOpen(false));
+  };
+
   return (
     <div className={styles.root}>
       <div className={styles.title}>
@@ -32,10 +37,7 @@ const TaskItem: React.FC<PropTypes> = ({ task }) => {
           onClick={() => console.log(`check ${task.id}`)}
           className={styles.checkbox}
         />
-        <button
-          onClick={handleOpen}
-          className={styles.edit_button}
-        >
+        <button onClick={handleOpen} className={styles.edit_button}>
           <EditIcon className={styles.icon} />
         </button>
         <button
@@ -47,15 +49,15 @@ const TaskItem: React.FC<PropTypes> = ({ task }) => {
       </div>
       <Modal
         className={styles.modal}
-        open={open}
+        open={isModalOpen}
         onClose={handleClose}
         aria-labelledby="simple-modal-title"
         aria-describedby="simple-modal-description"
       >
-          <div className={styles.modal_content}>
-              <h3 className={styles.modal_title}>EDIT TASK</h3>
-              <TaskForm edit/>
-          </div>
+        <div className={styles.modal_content}>
+          <h3 className={styles.modal_title}>EDIT TASK</h3>
+          <TaskForm edit />
+        </div>
       </Modal>
     </div>
   );
