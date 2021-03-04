@@ -48,10 +48,21 @@ export const taskSlice = createSlice({
     handleModalOpen: (state, action) => {
       state.isModalOpen = action.payload;
     },
+    //task Complete/Incomplete check
+    completeTask:(state,action) => {
+        const task =state.tasks.find((t) => t.id === action.payload.id);
+        if (task) {
+            task.completed = !task.completed;
+        }
+    },
+    deleteTask:(state,action) => {
+        //remove match id, create new state without it 
+        state.tasks = state.tasks.filter((t) => t.id !== action.payload.id);
+    }
   },
 });
 
-export const { createTask, selectTask, handleModalOpen, editTask } = taskSlice.actions;
+export const { createTask, selectTask, handleModalOpen, editTask, completeTask, deleteTask } = taskSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of
