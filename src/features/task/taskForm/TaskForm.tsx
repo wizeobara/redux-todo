@@ -1,11 +1,17 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import { createTask, handleModalOpen, selectSelectedTask, editTask} from "../taskSlice";
+import {
+  handleModalOpen,
+  selectSelectedTask,
+  editInfo,
+  addInfo,
+} from "../taskSlice";
 import styles from "./TaskForm.module.scss";
 import TextField from "@material-ui/core/TextField";
 
 type Inputs = {
+  _id: string;
   taskTitle: string;
 };
 
@@ -16,16 +22,18 @@ const TaskForm: React.FC<PropTypes> = ({ edit }) => {
   const dispatch = useDispatch();
   const selectedTask = useSelector(selectSelectedTask);
   const { register, handleSubmit, reset } = useForm();
+
   const handleCreate = (data: Inputs) => {
-    dispatch(createTask(data.taskTitle));
+    const newTodo = { title: data.taskTitle, completed: false };
+    dispatch(addInfo(newTodo));
     reset();
   };
+
   const handleEdit = (data: Inputs) => {
-    const sendData = {...selectedTask, title: data.taskTitle};
-    dispatch(editTask(sendData))
-    dispatch(handleModalOpen(false))
+    const sendData = { _id: selectedTask._id, title: data.taskTitle };
+    dispatch(editInfo(sendData));
   };
-  
+
   return (
     <div className={styles.root}>
       <form
@@ -33,7 +41,6 @@ const TaskForm: React.FC<PropTypes> = ({ edit }) => {
         className={styles.form}
       >
         <TextField
-          id="outlined-basic"
           label={edit ? "EDIT TASK" : "ADD TASK"}
           defaultValue={edit ? selectedTask.title : ""}
           variant="outlined"
@@ -46,7 +53,11 @@ const TaskForm: React.FC<PropTypes> = ({ edit }) => {
             <button type="submit" className={styles.submit_button}>
               Submit
             </button>
-            <button type="button" onClick={()=> dispatch(handleModalOpen(false))} className={styles.cancel_button}>
+            <button
+              type="button"
+              onClick={() => dispatch(handleModalOpen(false))}
+              className={styles.cancel_button}
+            >
               Cancel
             </button>
           </div>

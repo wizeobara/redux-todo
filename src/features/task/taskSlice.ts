@@ -1,20 +1,77 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AppThunk, RootState } from "../../app/store";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { RootState } from "../../app/store";
+import axios from "axios";
 
 interface TaskState {
-  //task何個あるか
-  idCount: number;
+  isLoading: boolean;
   //storeに保存するタスク
-  tasks: { id: number; title: string; completed: boolean }[];
+  tasks: { _id: string; title: string; completed: boolean }[];
   //編集の際にどのタスクを編集するか
-  selectedTask: { id: number; title: string; completed: boolean };
+  selectedTask: { _id: string; title: string; completed: boolean };
   isModalOpen: boolean;
 }
 
+const API_URL_PROGRESS = "http://localhost:5000/progress/";
+
+const _getInfo = async () =>
+  axios.get(API_URL_PROGRESS).then((v) => {
+    return { data: v.data };
+  });
+
+const _addInfo = async (args: { title: string; completed: boolean }) =>
+  axios.post(API_URL_PROGRESS, args);
+
+const _completeInfo = async (args: { _id: string; completed: boolean }) =>
+  axios.post(API_URL_PROGRESS + "complete/" + args._id, {
+    completed: args.completed,
+  });
+
+const _deleteInfo = async (args: { _id: string }) =>
+  axios.delete(API_URL_PROGRESS + args._id);
+
+const _editInfo = async (args: { _id: string; title: string }) =>
+  axios.post(API_URL_PROGRESS + "update/" + args._id, {
+    title: args.title,
+  });
+
+export const getInfo = createAsyncThunk("get/getInfo", _getInfo);
+
+export const addInfo = createAsyncThunk(
+  "post/addInfo",
+  async (args: { title: string; completed: boolean }, { dispatch }) => {
+    await _addInfo(args);
+    dispatch(getInfo());
+  }
+);
+
+export const completeInfo = createAsyncThunk(
+  "post/completeInfo",
+  async (args: { _id: string; completed: boolean }, { dispatch }) => {
+    await _completeInfo(args);
+    dispatch(getInfo());
+  }
+);
+
+export const deleteInfo = createAsyncThunk(
+  "delete/deleteInfo",
+  async (args: { _id: string }, { dispatch }) => {
+    await _deleteInfo(args);
+    dispatch(getInfo());
+  }
+);
+
+export const editInfo = createAsyncThunk(
+  "post/editInfo",
+  async (args: { _id: string; title: string }, { dispatch }) => {
+    await _editInfo(args);
+    dispatch(getInfo());
+  }
+);
+
 const initialState: TaskState = {
-  idCount: 1,
-  tasks: [{ id: 1, title: "Task A", completed: false }],
-  selectedTask: { id: 0, title: "", completed: false },
+  isLoading: false,
+  tasks: [],
+  selectedTask: { _id: "", title: "", completed: false },
   isModalOpen: false,
 };
 
@@ -22,24 +79,6 @@ export const taskSlice = createSlice({
   name: "task",
   initialState,
   reducers: {
-    //Add task機能
-    createTask: (state, action) => {
-      state.idCount++;
-      const newTask = {
-        id: state.idCount,
-        title: action.payload,
-        completed: false,
-      };
-      state.tasks = [newTask, ...state.tasks];
-    },
-    //タスク編集
-    editTask: (state, action) => {
-      const task = state.tasks.find((t) => t.id === action.payload.id);
-      //Change title of task that we matched
-      if (task) {
-        task.title = action.payload.title;
-      }
-    },
     //task選択管理
     selectTask: (state, action) => {
       state.selectedTask = action.payload;
@@ -48,21 +87,21 @@ export const taskSlice = createSlice({
     handleModalOpen: (state, action) => {
       state.isModalOpen = action.payload;
     },
-    //task Complete/Incomplete check
-    completeTask:(state,action) => {
-        const task =state.tasks.find((t) => t.id === action.payload.id);
-        if (task) {
-            task.completed = !task.completed;
-        }
-    },
-    deleteTask:(state,action) => {
-        //remove match id, create new state without it 
-        state.tasks = state.tasks.filter((t) => t.id !== action.payload.id);
-    }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getInfo.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(getInfo.rejected, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(getInfo.fulfilled, (state, action) => {
+      state.tasks = action.payload.data;
+    });
   },
 });
 
-export const { createTask, selectTask, handleModalOpen, editTask, completeTask, deleteTask } = taskSlice.actions;
+export const { selectTask, handleModalOpen } = taskSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of

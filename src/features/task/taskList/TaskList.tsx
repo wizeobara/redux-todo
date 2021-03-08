@@ -1,20 +1,24 @@
-import React from 'react'
-import { useSelector } from 'react-redux';
-import { selectTasks } from '../taskSlice'
-import TaskItem from '../taskItem/TaskItem'
-import styles from './TaskList.module.scss';
-// import sampleData from './sampleData.json';
+import React, {useEffect} from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {  getInfo, selectTasks } from "../taskSlice";
+import TaskItem from "../taskItem/TaskItem";
+import styles from "./TaskList.module.scss";
 
-const TaskList:React.FC = () => {
-    const tasks = useSelector(selectTasks);
+const TaskList: React.FC = () => {
+  const tasks = useSelector(selectTasks);
+  const dispatch = useDispatch();
 
-    return (
-        <div className={styles.root}>
-            {tasks.map((task) => (
-                <TaskItem key={task.id} task={task}/>
-            ))}
-        </div>
-    )
-}
+  useEffect(() => {
+    dispatch(getInfo());
+  }, [dispatch]);
 
-export default TaskList
+  return (
+    <div className={styles.root}>
+      {tasks.map((task) => (
+        <TaskItem key={task._id} task={task} />
+      ))}
+    </div>
+  );
+};
+
+export default TaskList;

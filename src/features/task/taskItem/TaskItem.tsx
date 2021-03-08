@@ -6,11 +6,17 @@ import EditIcon from "@material-ui/icons/Edit";
 import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import Modal from "@material-ui/core/Modal";
 import TaskForm from "../taskForm/TaskForm";
-import { handleModalOpen, selectIsModalOpen, selectTask, completeTask, deleteTask } from "../taskSlice";
+import {
+  deleteInfo,
+  handleModalOpen,
+  selectIsModalOpen,
+  selectTask,
+  completeInfo
+} from "../taskSlice";
 import styles from "./TaskItem.module.scss";
 
 interface PropTypes {
-  task: { id: number; title: string; completed: boolean };
+  task: { _id: string; title: string; completed: boolean };
 }
 
 const TaskItem: React.FC<PropTypes> = ({ task }) => {
@@ -26,6 +32,16 @@ const TaskItem: React.FC<PropTypes> = ({ task }) => {
     dispatch(handleModalOpen(false));
   };
 
+  const completeTask = () => {
+    const newComplete = {_id: task._id, completed: !task.completed}
+    dispatch(completeInfo(newComplete));
+  };
+
+  const deleteTask = () => {
+    const newDelete = {_id: task._id}
+    dispatch(deleteInfo(newDelete));
+  };
+
   return (
     <div className={styles.root}>
       <div className={styles.title}>
@@ -35,14 +51,14 @@ const TaskItem: React.FC<PropTypes> = ({ task }) => {
       <div className={styles.right_item}>
         <Checkbox
           checked={task.completed}
-          onClick={() => dispatch(completeTask(task))}
+          onClick={() => completeTask()}
           className={styles.checkbox}
         />
         <button onClick={handleOpen} className={styles.edit_button}>
           <EditIcon className={styles.icon} />
         </button>
         <button
-          onClick={() => dispatch(deleteTask(task))}
+          onClick={() => deleteTask()}
           className={styles.delete_button}
         >
           <DeleteForeverIcon className={styles.icon} />
