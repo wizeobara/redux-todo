@@ -1,4 +1,9 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  AsyncThunk,
+  AnyAction,
+} from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import axios from "axios";
 
@@ -68,6 +73,16 @@ export const editInfo = createAsyncThunk(
   }
 );
 
+type GenericAsyncThunk = AsyncThunk<unknown, unknown, never>;
+type PendingAction = ReturnType<GenericAsyncThunk["pending"]>;
+type RejectedAction = ReturnType<GenericAsyncThunk["rejected"]>;
+
+function isPendingAction(action: AnyAction): action is PendingAction {
+  return action.type.endsWith("/pending");
+}
+function isRejectedAction(action: AnyAction): action is RejectedAction {
+  return action.type.endsWith("/rejected");
+}
 const initialState: TaskState = {
   isLoading: false,
   tasks: [],
@@ -89,14 +104,15 @@ export const taskSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(getInfo.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(getInfo.rejected, (state) => {
-      state.isLoading = false;
-    });
     builder.addCase(getInfo.fulfilled, (state, action) => {
       state.tasks = action.payload.data;
+      state.isLoading = false;
+    });
+    builder.addMatcher(isPendingAction, (state) => {
+      state.isLoading = true;
+    });
+    builder.addMatcher(isRejectedAction, (state) => {
+      state.isLoading = false;
     });
   },
 });

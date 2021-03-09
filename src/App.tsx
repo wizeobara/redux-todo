@@ -1,19 +1,23 @@
 import React from "react";
 import Header from "./components/header/Header";
-import TaskForm from "./features/task/taskForm/TaskForm"
-import TaskList from "./features/task/taskList/TaskList"
-
+import Main from "./page/Main";
+import Sub from "./page/Sub"
+import { BrowserRouter, Route, Switch } from "react-router-dom";
 import styles from "./App.module.scss";
 
 const App: React.FC = () => {
   return (
-    <div className={styles.root}>
-      <div className={styles.wrapper}>
-        <Header />
-        <TaskForm />
-        <TaskList />
+    <BrowserRouter>
+      <div className={styles.root}>
+        <div className={styles.wrapper}>
+          <Header />
+          <Switch>
+            <Route exact path = "/" component={Main}/>
+            <Route exact path = "/sub" component={Sub}/>
+          </Switch>
+        </div>
       </div>
-    </div>
+    </BrowserRouter>
   );
 };
 
